@@ -1,2 +1,4 @@
 build/*
 whisper_ctranslate2.egg-info/*
+src/whisper_ctranslate2/__pycache__/*
+output/*
