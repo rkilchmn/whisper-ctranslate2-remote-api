@@ -10,6 +10,7 @@ import requests
 import json
 from .transcribe import TranscriptionOptions
 from collections import namedtuple
+from urllib.parse import urlencode
 
 def convertToNamedTuple(name, dictionary):
     return namedtuple( name, dictionary.keys())(**dictionary)
@@ -88,38 +89,53 @@ class Transcribe_remote:
         live: bool,
         options: TranscriptionOptions,
     ):
-        # vad_parameters = self._get_vad_parameters_dictionary(options)
+        vad_parameters = self._get_vad_parameters_dictionary(options)
 
-        # segments, info = self.model.transcribe(
-        #     audio=audio,
-        #     language=language,
-        #     task=task,
-        #     beam_size=options.beam_size,
-        #     best_of=options.best_of,
-        #     patience=options.patience,
-        #     length_penalty=options.length_penalty,
-        #     repetition_penalty=options.repetition_penalty,
-        #     no_repeat_ngram_size=options.no_repeat_ngram_size,
-        #     temperature=options.temperature,
-        #     compression_ratio_threshold=options.compression_ratio_threshold,
-        #     log_prob_threshold=options.log_prob_threshold,
-        #     no_speech_threshold=options.no_speech_threshold,
-        #     condition_on_previous_text=options.condition_on_previous_text,
-        #     prompt_reset_on_temperature=options.prompt_reset_on_temperature,
-        #     initial_prompt=options.initial_prompt,
-        #     suppress_blank=options.suppress_blank,
-        #     suppress_tokens=options.suppress_tokens,
-        #     word_timestamps=True if options.print_colors else options.word_timestamps,
-        #     prepend_punctuations=options.prepend_punctuations,
-        #     append_punctuations=options.append_punctuations,
-        #     hallucination_silence_threshold=options.hallucination_silence_threshold,
-        #     vad_filter=options.vad_filter,
-        #     vad_parameters=vad_parameters,
-        # )
+        parameters = {
+            'language': language,
+            'task': task,
+            'beam_size': options.beam_size,
+            'best_of': options.best_of,
+            'patience': options.patience,
+            'length_penalty': options.length_penalty,
+            'repetition_penalty': options.repetition_penalty,
+            'no_repeat_ngram_size': options.no_repeat_ngram_size,
+            # 'temperature': options.temperature,
+            'compression_ratio_threshold': options.compression_ratio_threshold,
+            'log_prob_threshold': options.log_prob_threshold,
+            'no_speech_threshold': options.no_speech_threshold,
+            'condition_on_previous_text': options.condition_on_previous_text,
+            'prompt_reset_on_temperature': options.prompt_reset_on_temperature,
+            'initial_prompt': options.initial_prompt,
+            'suppress_blank': options.suppress_blank,
+            'suppress_tokens': options.suppress_tokens,
+            'word_timestamps': True if options.print_colors else options.word_timestamps,
+            'prepend_punctuations': options.prepend_punctuations,
+            'append_punctuations': options.append_punctuations,
+            'hallucination_silence_threshold': options.hallucination_silence_threshold,
+            'vad_filter': options.vad_filter,
+            'vad_parameters': json.dumps(vad_parameters) if vad_parameters else None,
+        }
 
+        # temperature needs special handling because can:
+        # temperature: Union[float, List[float], Tuple[float, ...]]
+        if options.temperature:
+            if type(options.temperature) is float:
+                parameters['temperature'] = [options.temperature] # create a list
+            parameters['temperature'] = json.dumps(options.temperature)
+
+        # remove empty/None paramters
+        parameters = {k: v for k, v in parameters.items() if v is not None}
         try:
             files = {"audio_file": open(audio, "rb")}
-            r = requests.post( self.remote_url, files=files, stream=True)
+
+            # Construct the query string
+            query_string = urlencode( parameters)
+            if query_string is not None:
+                query_string = '?' + query_string
+
+            # send request
+            r = requests.post( self.remote_url + query_string, files=files, stream=True)
 
             list_segments = []
             last_pos = 0

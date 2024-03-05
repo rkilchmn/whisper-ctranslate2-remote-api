@@ -1,14 +1,20 @@
 {
     "version": "0.2.0",
     "configurations": [
-
-
         {
             "name": "Python: Debug whisper-ctranslate2",
             "type": "debugpy",
             "request": "launch",
             "module": "src.whisper_ctranslate2.whisper_ctranslate2",
-            "args": ["/home/roger/sample-10min.mp3","--language", "en", "--output_dir", "output"],
+            "args": [
+                "/home/roger/sample-10min.mp3",
+                "--language", "en",
+                "--output_dir", "output",
+                // "--vad_filter", "True",
+                // "--vad_threshold", "0.05",
+                // "--vad_min_speech_duration_ms", "2000",
+                // "--vad_max_speech_duration_s", "5"
+            ],
             "env": {
                 "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
             },
