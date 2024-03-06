@@ -29,7 +29,8 @@
             "module": "src.whisper_ctranslate2.whisper_ctranslate2",
             "args": [
                 "--live_transcribe", "True",
-                "--language","en"
+                "--language","en",
+                "--live_input_device", "5"
             ],
             "env": {
                 "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
