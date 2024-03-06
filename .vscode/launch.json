@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Debug whisper-ctranslate2",
+            "name": "Python: Debug transcribe file",
             "type": "debugpy",
             "request": "launch",
             "module": "src.whisper_ctranslate2.whisper_ctranslate2",
@@ -19,7 +19,24 @@
                 "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
             },
             "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/.venv/bin/python"
+        },
+        {
+            "name": "Python: Debug transcribe live",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.whisper_ctranslate2.whisper_ctranslate2",
+            "args": [
+                "--live_transcribe", "True",
+                "--language","en"
+            ],
+            "env": {
+                "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
+            },
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/.venv/bin/python"
         }
     ]
 }
