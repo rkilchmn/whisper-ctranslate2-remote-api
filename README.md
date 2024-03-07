@@ -106,6 +106,31 @@ Maximum duration of speech chunks in seconds. Longer will be split at the timest
 
 https://user-images.githubusercontent.com/309265/231533784-e58c4b92-e9fb-4256-b4cd-12f1864131d9.mov
 
+Requirements for "pip install pyaudio":
+sudo apt-get install python3.10-dev libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+
+ sudo apt-get install python3-pyaudio
+  610  pip install pyaudio
+  611  sudo apt-get purge  python3-pyaudio
+  612  pip install pyaudio
+  613  sudo apt-get install python3.10-dev
+  614  pip install pyaudio
+  615  sudo apt-get install libasound-dev
+  616  pip install pyaudio
+  617  sudo apt-get purge libasound-dev
+  618  sudo apt autoremove
+  619  sudo apt-get install libasound-dev
+  620  pip install pyaudio
+  621  sudo apt-get install python-pyaudio
+  622  sudo apt-get install python3-pyaudio
+  623  pip install pyaudio
+  624  pip install portaudio
+  625  sudo apt-get install portaudio
+  626  sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+  627  pip install pyaudio
+  628  python list_input_sounddevice.py
+
+
 ## Diarization (speaker identification)
 
 There is experimental diarization support using [`pyannote.audio`](https://github.com/pyannote/pyannote-audio) to identify speakers. At the moment, the support is a segment level.

@@ -30,7 +30,7 @@
             "args": [
                 "--live_transcribe", "True",
                 "--language","en",
-                "--live_input_device", "5"
+                "--live_input_device", "1"
             ],
             "env": {
                 "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
