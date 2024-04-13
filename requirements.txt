@@ -1,6 +1,8 @@
 numpy
-faster-whisper>=1.0.0
-ctranslate2
+# not required for remote
+# faster-whisper>=1.0.0
+# ctranslate2
 tqdm
 sounddevice
-numpy
+libparse
+requests

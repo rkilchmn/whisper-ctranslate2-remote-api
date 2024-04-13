@@ -2,7 +2,7 @@ from .writers import format_timestamp
 from typing import NamedTuple, Optional, List, Union
 import tqdm
 import sys
-from faster_whisper import WhisperModel
+# from faster_whisper import WhisperModel
 from .languages import LANGUAGES
 from typing import BinaryIO
 import numpy as np
@@ -82,7 +82,7 @@ class Transcribe_remote:
 
     def inference(
         self,
-        audio: Union[str, BinaryIO, np.ndarray],
+        audio: Union[str, np.ndarray],
         task: str,
         language: str,
         verbose: bool,
@@ -127,15 +127,20 @@ class Transcribe_remote:
         # remove empty/None paramters
         parameters = {k: v for k, v in parameters.items() if v is not None}
         try:
-            files = {"audio_file": open(audio, "rb")}
-
             # Construct the query string
             query_string = urlencode( parameters)
             if query_string is not None:
                 query_string = '?' + query_string
 
-            # send request
-            r = requests.post( self.remote_url + query_string, files=files, stream=True)
+            if isinstance(audio, str):
+                files = {"audio_file": open(audio, "rb")}
+                # send request
+                r = requests.post( self.remote_url + query_string, files=files, stream=True)
+
+            elif isinstance(audio, np.ndarray):
+                # Case when audio is a NumPy array
+                audio_data = audio.flatten().astype("float32")
+                r = requests.post( self.remote_url + query_string, data=audio_data.tobytes(), stream=True)
 
             list_segments = []
             last_pos = 0

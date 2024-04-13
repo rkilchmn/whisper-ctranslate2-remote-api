@@ -10,6 +10,7 @@ from .live import Live
 import sys
 import datetime
 from .commandline import CommandLine
+from urllib.parse import urlparse
 
 
 def get_diarization(audio, diarize_model, verbose):
@@ -107,6 +108,7 @@ def main():
     live_input_device: int = args.pop("live_input_device")
     hf_token = args.pop("hf_token")
     speaker_name = args.pop("speaker_name")
+    remote_url: str = args.pop("remote_url")
 
     language = get_language(language, model_directory, model)
     options = get_transcription_options(args)
@@ -168,6 +170,16 @@ def main():
             "Print colors requires word-level time stamps. Generated files in output directory will have word-level timestamps"
         )
 
+    if not remote_url:
+        sys.stderr.write("You need to specify the remote url with `--remote_url`\n")
+        sys.stderr.write( "Use `whisper-ctranslate2 --help` to see the available options.\n")
+        return
+    else: 
+        result = urlparse(remote_url)
+        if not (result.scheme in ['http', 'https'] and result.hostname and result.path):
+            sys.stderr.write(f"--remote_url `{remote_url}` is not a valid url.\n")
+            return
+
     output_dir = os.path.abspath(output_dir)
     if model_directory:
         model_filename = os.path.join(model_directory, "model.bin")
@@ -193,6 +205,7 @@ def main():
             live_volume_threshold,
             live_input_device,
             options,
+            remote_url,
         ).inference()
 
         return
@@ -208,7 +221,7 @@ def main():
     # )
 
     transcribe = Transcribe_remote(
-        "http://localhost:9876/api/v0/transcribe"
+        remote_url
     )
 
     diarization = len(hf_token) > 0

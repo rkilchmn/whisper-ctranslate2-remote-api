@@ -190,6 +190,13 @@ class CommandLine:
             help="Type of quantization to use (see https://opennmt.net/CTranslate2/quantization.html)",
         )
 
+        computing_args.add_argument(
+            "--remote_url",
+            type=str,
+            default=None,
+            help="Url of remote location of the faster-whisper API",
+        )
+
         algorithm_args = parser.add_argument_group("Algorithm execution options")
 
         algorithm_args.add_argument(

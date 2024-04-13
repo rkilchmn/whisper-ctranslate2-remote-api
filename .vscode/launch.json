@@ -10,14 +10,12 @@
                 "/home/roger/sample-10min.mp3",
                 "--language", "en",
                 "--output_dir", "output",
+                "--remote_url", "http://localhost:9876/api/v0/transcribe"
                 // "--vad_filter", "True",
                 // "--vad_threshold", "0.05",
                 // "--vad_min_speech_duration_ms", "2000",
                 // "--vad_max_speech_duration_s", "5"
             ],
-            "env": {
-                "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
-            },
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "python": "${workspaceFolder}/.venv/bin/python"
@@ -30,11 +28,9 @@
             "args": [
                 "--live_transcribe", "True",
                 "--language","en",
-                "--live_input_device", "1"
+                "--live_input_device", "0",
+                "--remote_url", "http://localhost:9876/api/v0/transcribe"
             ],
-            "env": {
-                "LD_LIBRARY_PATH": "${env:LD_LIBRARY_PATH}:/usr/local/lib/python3.10/dist-packages/nvidia/cudnn/lib",
-            },
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "python": "${workspaceFolder}/.venv/bin/python"

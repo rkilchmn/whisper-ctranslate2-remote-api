@@ -2,6 +2,7 @@
 
 import numpy as np
 from .transcribe import Transcribe, TranscriptionOptions
+from .transcribe_remote import Transcribe_remote
 from typing import Union, List
 
 SampleRate = 16000  # Stream device recording frequency per second
@@ -36,6 +37,7 @@ class Live:
         threshold: float,
         input_device: int,
         options: TranscriptionOptions,
+        remote_url: str,
     ):
         self.model_path = model_path
         self.cache_directory = cache_directory
@@ -50,6 +52,7 @@ class Live:
         self.threshold = threshold
         self.input_device = input_device
         self.options = options
+        self.remote_url = remote_url
 
         self.running = True
         self.waiting = 0
@@ -121,14 +124,17 @@ class Live:
                 print("\n\033[90mTranscribing..\033[0m")
 
             if not self.transcribe:
-                self.transcribe = Transcribe(
-                    self.model_path,
-                    self.device,
-                    self.device_index,
-                    self.compute_type,
-                    self.threads,
-                    self.cache_directory,
-                    self.local_files_only,
+                # self.transcribe = Transcribe(
+                #     self.model_path,
+                #     self.device,
+                #     self.device_index,
+                #     self.compute_type,
+                #     self.threads,
+                #     self.cache_directory,
+                #     self.local_files_only,
+                # )
+                self.transcribe = Transcribe_remote(
+                    self.remote_url
                 )
 
             result = self.transcribe.inference(
@@ -148,7 +154,7 @@ class Live:
             self.input_device if self.input_device is not None else sd.default.device[0]
         )
         device_info = sd.query_devices(device=show_device)
-        SampleRate = device_info['default_samplerate']
+        # SampleRate = device_info['default_samplerate']
         print(
             f"\033[32mLive stream device: \033[37m{sd.query_devices(device=show_device)['name']}\033[0m"
         )
@@ -159,7 +165,7 @@ class Live:
             callback=self.callback,
             blocksize=int(SampleRate * BlockSize / 1000),
             samplerate=SampleRate,
-            device=self.input_device,
+            device=self.input_device
         ):
             while self.running:
                 self.process()

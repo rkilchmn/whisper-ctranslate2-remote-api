@@ -29,6 +29,8 @@ It has compatibility with x86-64 and AArch64/ARM64 CPU and integrates multiple b
 
 GPU execution requires the NVIDIA libraries cuBLAS 11.x and cuDNN 8.x to be installed on the system. Please refer to the [CTranslate2 documentation](https://opennmt.net/CTranslate2/installation.html)
 
+Install on ubuntu: sudo apt install nvidia-cudnn
+
 By default the best hardware available is selected for inference. You can use the options `--device` and `--device_index` to control manually the selection.
     
 # Usage
