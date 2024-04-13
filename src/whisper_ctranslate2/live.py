@@ -2,7 +2,6 @@
 
 import numpy as np
 from .transcribe import Transcribe, TranscriptionOptions
-from .transcribe_remote import Transcribe_remote
 from typing import Union, List
 
 SampleRate = 16000  # Stream device recording frequency per second
@@ -124,16 +123,7 @@ class Live:
                 print("\n\033[90mTranscribing..\033[0m")
 
             if not self.transcribe:
-                # self.transcribe = Transcribe(
-                #     self.model_path,
-                #     self.device,
-                #     self.device_index,
-                #     self.compute_type,
-                #     self.threads,
-                #     self.cache_directory,
-                #     self.local_files_only,
-                # )
-                self.transcribe = Transcribe_remote(
+                self.transcribe = Transcribe(
                     self.remote_url
                 )
 

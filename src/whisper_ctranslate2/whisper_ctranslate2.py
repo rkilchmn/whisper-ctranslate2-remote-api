@@ -1,6 +1,5 @@
 import os
 from .transcribe import Transcribe, TranscriptionOptions
-from .transcribe_remote import Transcribe_remote
 from .languages import from_language_to_iso_code
 import numpy as np
 import warnings
@@ -210,17 +209,7 @@ def main():
 
         return
 
-    # transcribe = Transcribe(
-    #     model_dir,
-    #     device,
-    #     device_index,
-    #     compute_type,
-    #     threads,
-    #     cache_directory,
-    #     local_files_only,
-    # )
-
-    transcribe = Transcribe_remote(
+    transcribe = Transcribe(
         remote_url
     )
 
