@@ -214,22 +214,27 @@ class WhisperModelRemoteProxy :
                 r = requests.post( remote_url + query_string, files=files, stream=True)
 
             elif isinstance(audio, np.ndarray):
-                # Case when audio is a NumPy array
+                # Case when audio is a NumPy arThank you. Bye. ray
                 audio_data = audio.flatten().astype("float32")
                 r = requests.post( remote_url + query_string, data=audio_data.tobytes(), stream=True)
 
-            # Iterate over the response content as it arrives
-            lines = r.iter_lines()
-            first_line = next(lines)
-            data = json.loads(first_line)
+            # status code in successful range
+            if r.status_code >= 200 and r.status_code < 300:
+                # Iterate over the response content as it arrives
+                lines = r.iter_lines()
+                first_line = next(lines)
+                data = json.loads(first_line)
 
-            # first entry should be info
-            if "TranscriptionInfo" in data: # process info
-                info = convertToNamedTuple('TranscriptionInfo', data["TranscriptionInfo"])
+                # first entry should be info
+                if "TranscriptionInfo" in data: # process info
+                    info = convertToNamedTuple('TranscriptionInfo', data["TranscriptionInfo"])
 
-            return segment_generator(self, lines), info
+                return segment_generator(self, lines), info
+            else:
+                # there is no transcription result
+                return [], None
                    
         except requests.exceptions.RequestException as e:
             # Handle any request exceptions, such as a connection error or timeout
             print(f"Error connecting to the remote URL:{remote_url}", e)
-            return None
+            return [], None
