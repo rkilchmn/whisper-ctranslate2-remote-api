@@ -156,6 +156,13 @@ class Transcribe:
             vad_parameters=vad_parameters,
         )
 
+        if not info:
+            return dict(
+                text="",
+                segments=[],
+                language="",
+            )
+
         language_name = LANGUAGES[info.language].title()
         if not live:
             print(
