@@ -36,7 +36,6 @@ class Live:
         threshold: float,
         input_device: int,
         options: TranscriptionOptions,
-        remote_url: str,
     ):
         self.model_path = model_path
         self.cache_directory = cache_directory
@@ -51,7 +50,6 @@ class Live:
         self.threshold = threshold
         self.input_device = input_device
         self.options = options
-        self.remote_url = remote_url
 
         self.running = True
         self.waiting = 0
@@ -124,7 +122,13 @@ class Live:
 
             if not self.transcribe:
                 self.transcribe = Transcribe(
-                    self.remote_url
+                    self.model_path,
+                    self.device,
+                    self.device_index,
+                    self.compute_type,
+                    self.threads,
+                    self.cache_directory,
+                    self.local_files_only,
                 )
 
             result = self.transcribe.inference(

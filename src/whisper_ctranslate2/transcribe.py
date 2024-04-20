@@ -2,17 +2,11 @@ from .writers import format_timestamp
 from typing import NamedTuple, Optional, List, Union
 import tqdm
 import sys
-# from faster_whisper import WhisperModel
+#from faster_whisper import WhisperModel
+from faster_whisper_remote_proxy import WhisperModelRemoteProxy
 from .languages import LANGUAGES
 from typing import BinaryIO
 import numpy as np
-import requests
-import json
-from collections import namedtuple
-from urllib.parse import urlencode
-
-def convertToNamedTuple(name, dictionary):
-    return namedtuple( name, dictionary.keys())(**dictionary)
 
 system_encoding = sys.getdefaultencoding()
 
@@ -55,6 +49,7 @@ class TranscriptionOptions(NamedTuple):
     vad_min_speech_duration_ms: Optional[int]
     vad_max_speech_duration_s: Optional[int]
     vad_min_silence_duration_ms: Optional[int]
+
 
 class Transcribe:
     def _get_colored_text(self, words):
@@ -105,13 +100,27 @@ class Transcribe:
 
     def __init__(
         self,
-        remote_url: str
+        model_path: str,
+        device: str,
+        device_index: Union[int, List[int]],
+        compute_type: str,
+        threads: int,
+        cache_directory: str,
+        local_files_only: bool,
     ):
-        self.remote_url=remote_url
+        self.model = WhisperModelRemoteProxy(
+            model_path,
+            device=device,
+            device_index=device_index,
+            compute_type=compute_type,
+            cpu_threads=threads,
+            download_root=cache_directory,
+            local_files_only=local_files_only,
+        )
 
     def inference(
         self,
-        audio: Union[str, np.ndarray],
+        audio: Union[str, BinaryIO, np.ndarray],
         task: str,
         language: str,
         verbose: bool,
@@ -120,121 +129,78 @@ class Transcribe:
     ):
         vad_parameters = self._get_vad_parameters_dictionary(options)
 
-        parameters = {
-            'language': language,
-            'task': task,
-            'beam_size': options.beam_size,
-            'best_of': options.best_of,
-            'patience': options.patience,
-            'length_penalty': options.length_penalty,
-            'repetition_penalty': options.repetition_penalty,
-            'no_repeat_ngram_size': options.no_repeat_ngram_size,
-            # 'temperature': options.temperature,
-            'compression_ratio_threshold': options.compression_ratio_threshold,
-            'log_prob_threshold': options.log_prob_threshold,
-            'no_speech_threshold': options.no_speech_threshold,
-            'condition_on_previous_text': options.condition_on_previous_text,
-            'prompt_reset_on_temperature': options.prompt_reset_on_temperature,
-            'initial_prompt': options.initial_prompt,
-            'suppress_blank': options.suppress_blank,
-            'suppress_tokens': options.suppress_tokens,
-            'word_timestamps': True if options.print_colors else options.word_timestamps,
-            'prepend_punctuations': options.prepend_punctuations,
-            'append_punctuations': options.append_punctuations,
-            'hallucination_silence_threshold': options.hallucination_silence_threshold,
-            'vad_filter': options.vad_filter,
-            'vad_parameters': json.dumps(vad_parameters) if vad_parameters else None,
-        }
+        segments, info = self.model.transcribe(
+            audio=audio,
+            language=language,
+            task=task,
+            beam_size=options.beam_size,
+            best_of=options.best_of,
+            patience=options.patience,
+            length_penalty=options.length_penalty,
+            repetition_penalty=options.repetition_penalty,
+            no_repeat_ngram_size=options.no_repeat_ngram_size,
+            temperature=options.temperature,
+            compression_ratio_threshold=options.compression_ratio_threshold,
+            log_prob_threshold=options.log_prob_threshold,
+            no_speech_threshold=options.no_speech_threshold,
+            condition_on_previous_text=options.condition_on_previous_text,
+            prompt_reset_on_temperature=options.prompt_reset_on_temperature,
+            initial_prompt=options.initial_prompt,
+            suppress_blank=options.suppress_blank,
+            suppress_tokens=options.suppress_tokens,
+            word_timestamps=True if options.print_colors else options.word_timestamps,
+            prepend_punctuations=options.prepend_punctuations,
+            append_punctuations=options.append_punctuations,
+            hallucination_silence_threshold=options.hallucination_silence_threshold,
+            vad_filter=options.vad_filter,
+            vad_parameters=vad_parameters,
+        )
 
-        # temperature needs special handling because can:
-        # temperature: Union[float, List[float], Tuple[float, ...]]
-        if options.temperature:
-            if type(options.temperature) is float:
-                parameters['temperature'] = [options.temperature] # create a list
-            parameters['temperature'] = json.dumps(options.temperature)
-
-        # remove empty/None paramters
-        parameters = {k: v for k, v in parameters.items() if v is not None}
-        try:
-            # Construct the query string
-            query_string = urlencode( parameters)
-            if query_string is not None:
-                query_string = '?' + query_string
-
-            if isinstance(audio, str):
-                files = {"audio_file": open(audio, "rb")}
-                # send request
-                r = requests.post( self.remote_url + query_string, files=files, stream=True)
-
-            elif isinstance(audio, np.ndarray):
-                # Case when audio is a NumPy array
-                audio_data = audio.flatten().astype("float32")
-                r = requests.post( self.remote_url + query_string, data=audio_data.tobytes(), stream=True)
-
-            list_segments = []
-            last_pos = 0
-            accumated_inc = 0
-            all_text = ""
-
-            # Iterate over the response content as it arrives
-            for line in r.iter_lines():
-                # Decode JSON string to dictionary
-                data = json.loads(line)
-
-                # process depending on returned information
-                if "TranscriptionInfo" in data: # process info
-                    info = convertToNamedTuple('TranscriptionInfo', data["TranscriptionInfo"])
-
-                    language_name = LANGUAGES[info.language].title()
-                    if not live:
-                        print(
-                            "Detected language '%s' with probability %f"
-                            % (language_name, info.language_probability)
-                        )
-
-                    # Initialize tqdm progress bar when info is received
-                    pbar = tqdm.tqdm(
-                        total=info.duration, unit="seconds", disable=verbose or live is not False
-                    )
-
-                elif "Segment" in data: # process segment
-                    segment = convertToNamedTuple('Segment', data["Segment"])
-
-                    start, end, text = segment.start, segment.end, segment.text
-                    all_text += segment.text
-
-                    if verbose or options.print_colors:
-                        if options.print_colors and segment.words:
-                            text = self._get_colored_text(segment.words)
-                        else:
-                            text = segment.text
-
-                        if not live:
-                            line = f"[{format_timestamp(start)} --> {format_timestamp(end)}] {text}"
-                            print(make_safe(line))
-
-                    segment_dict = segment._asdict()
-                    if segment.words:
-                        segment_dict["words"] = [word._asdict() for word in segment.words]
-
-                    list_segments.append(segment_dict)
-                    duration = segment.end - last_pos
-                    increment = (
-                        duration
-                        if accumated_inc + duration < info.duration
-                        else info.duration - accumated_inc
-                    )
-                    accumated_inc += increment
-                    last_pos = segment.end
-                    # Update tqdm progress bar
-                    if pbar:
-                        pbar.update(increment)
-            return dict(
-                text=all_text,
-                segments=list_segments,
-                language=language_name,
+        language_name = LANGUAGES[info.language].title()
+        if not live:
+            print(
+                "Detected language '%s' with probability %f"
+                % (language_name, info.language_probability)
             )
-        except requests.exceptions.RequestException as e:
-            # Handle any request exceptions, such as a connection error or timeout
-            print(f"Error connecting to the remote URL:{self.remote_url}", e)
-            return None
+
+        list_segments = []
+        last_pos = 0
+        accumated_inc = 0
+        all_text = ""
+        with tqdm.tqdm(
+            total=info.duration, unit="seconds", disable=verbose or live is not False
+        ) as pbar:
+            for segment in segments:
+                start, end, text = segment.start, segment.end, segment.text
+                all_text += segment.text
+
+                if verbose or options.print_colors:
+                    if options.print_colors and segment.words:
+                        text = self._get_colored_text(segment.words)
+                    else:
+                        text = segment.text
+
+                    if not live:
+                        line = f"[{format_timestamp(start)} --> {format_timestamp(end)}] {text}"
+                        print(make_safe(line))
+
+                segment_dict = segment._asdict()
+                if segment.words:
+                    segment_dict["words"] = [word._asdict() for word in segment.words]
+
+                list_segments.append(segment_dict)
+                duration = segment.end - last_pos
+                increment = (
+                    duration
+                    if accumated_inc + duration < info.duration
+                    else info.duration - accumated_inc
+                )
+                accumated_inc += increment
+                last_pos = segment.end
+                pbar.update(increment)
+
+        return dict(
+            text=all_text,
+            segments=list_segments,
+            language=language_name,
+        )

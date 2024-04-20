@@ -11,6 +11,8 @@ import datetime
 from .commandline import CommandLine
 from urllib.parse import urlparse
 
+import faster_whisper_remote_proxy 
+
 
 def get_diarization(audio, diarize_model, verbose):
     diarization_output = {}
@@ -107,7 +109,7 @@ def main():
     live_input_device: int = args.pop("live_input_device")
     hf_token = args.pop("hf_token")
     speaker_name = args.pop("speaker_name")
-    remote_url: str = args.pop("remote_url")
+    faster_whisper_remote_proxy.remote_url = args.pop("remote_url")
 
     language = get_language(language, model_directory, model)
     options = get_transcription_options(args)
@@ -169,14 +171,14 @@ def main():
             "Print colors requires word-level time stamps. Generated files in output directory will have word-level timestamps"
         )
 
-    if not remote_url:
+    if not faster_whisper_remote_proxy.remote_url:
         sys.stderr.write("You need to specify the remote url with `--remote_url`\n")
         sys.stderr.write( "Use `whisper-ctranslate2 --help` to see the available options.\n")
         return
     else: 
-        result = urlparse(remote_url)
+        result = urlparse(faster_whisper_remote_proxy.remote_url)
         if not (result.scheme in ['http', 'https'] and result.hostname and result.path):
-            sys.stderr.write(f"--remote_url `{remote_url}` is not a valid url.\n")
+            sys.stderr.write(f"--remote_url `{faster_whisper_remote_proxy.remote_url}` is not a valid url.\n")
             return
 
     output_dir = os.path.abspath(output_dir)
@@ -204,13 +206,18 @@ def main():
             live_volume_threshold,
             live_input_device,
             options,
-            remote_url,
         ).inference()
 
         return
 
     transcribe = Transcribe(
-        remote_url
+        model_dir,
+        device,
+        device_index,
+        compute_type,
+        threads,
+        cache_directory,
+        local_files_only,
     )
 
     diarization = len(hf_token) > 0
