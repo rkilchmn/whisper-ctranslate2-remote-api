@@ -4,3 +4,4 @@ src/whisper_ctranslate2/__pycache__/*
 output/*
 .vscode/*
 __pycache__/*
+.venv/

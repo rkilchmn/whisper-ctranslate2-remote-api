@@ -2,4 +2,3 @@ numpy
 tqdm
 sounddevice
 libparse
-requests

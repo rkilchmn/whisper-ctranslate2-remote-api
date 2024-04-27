@@ -4,13 +4,14 @@
         {
             "name": "Python: Debug transcribe file",
             "type": "debugpy",
+            "justMyCode": false,
             "request": "launch",
             "module": "src.whisper_ctranslate2.whisper_ctranslate2",
             "args": [
                 "/home/roger/sample-10min.mp3",
                 "--language", "en",
                 "--output_dir", "output",
-                "--remote_url", "http://localhost:9876/api/v0/transcribe"
+                "--faster_whisper_api_base_url", "http://localhost:9876/api/v0"
                 // "--vad_filter", "True",
                 // "--vad_threshold", "0.05",
                 // "--vad_min_speech_duration_ms", "2000",
@@ -23,13 +24,14 @@
         {
             "name": "Python: Debug transcribe live",
             "type": "debugpy",
+            "justMyCode": false,
             "request": "launch",
             "module": "src.whisper_ctranslate2.whisper_ctranslate2",
             "args": [
                 "--live_transcribe", "True",
                 "--language","en",
                 "--live_input_device", "0",
-                "--remote_url", "http://localhost:9876/api/v0/transcribe"
+                "--faster_whisper_api_base_url", "http://localhost:9876/api/v0"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",

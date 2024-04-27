@@ -2,8 +2,7 @@ from .writers import format_timestamp
 from typing import NamedTuple, Optional, List, Union
 import tqdm
 import sys
-#from faster_whisper import WhisperModel
-from faster_whisper_remote_proxy import WhisperModelRemoteProxy
+from faster_whisper_api_proxy import WhisperModelApiProxy
 from .languages import LANGUAGES
 from typing import BinaryIO
 import numpy as np
@@ -108,7 +107,7 @@ class Transcribe:
         cache_directory: str,
         local_files_only: bool,
     ):
-        self.model = WhisperModelRemoteProxy(
+        self.model = WhisperModelApiProxy(
             model_path,
             device=device,
             device_index=device_index,

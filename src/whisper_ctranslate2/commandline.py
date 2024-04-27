@@ -192,7 +192,7 @@ class CommandLine:
         )
 
         computing_args.add_argument(
-            "--remote_url",
+            "--faster_whisper_api_base_url",
             type=str,
             default=None,
             help="Url of remote location of the faster-whisper API",
