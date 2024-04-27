@@ -2,3 +2,4 @@ numpy
 tqdm
 sounddevice
 libparse
+git+https://github.com/rkilchmn/faster_whisper_api_proxy.git
