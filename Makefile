@@ -6,11 +6,11 @@ run:
 
 install-dependencies-e2e-tests:
 	echo ctranslate2==4.0.0 > constraints.txt
-	pip install --force-reinstall -c constraints.txt faster-whisper==1.0.0
+	pip install --force-reinstall -c constraints.txt faster-whisper==1.0.2
 	pip install --force-reinstall pyannote.audio==3.1.1
 
 run-e2e-tests:
-	CT2_USE_MKL="False" CT2_FORCE_CPU_ISA='GENERIC' nose2 -s e2e-tests
+	CT2_USE_MKL="False" CT2_FORCE_CPU_ISA='GENERIC' KMP_DUPLICATE_LIB_OK="TRUE" nose2 -s e2e-tests
 
 run-tests:
 	nose2 -s tests
