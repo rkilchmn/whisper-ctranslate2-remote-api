@@ -14,13 +14,13 @@ def read_version(fname="src/whisper_ctranslate2/version.py"):
 
 
 setup(
-    name="whisper-ctranslate2",
+    name="whisper-ctranslate2-remote-api",
     version=read_version(),
-    description="Whisper command line client that uses CTranslate2 and faster-whisper",
+    description="Whisper command line client that uses a remote CTranslate2/faster-whisper instance via a remote API call",
     long_description=README,
     long_description_content_type="text/markdown",
-    url="https://github.com/Softcatala/whisper-ctranslate2",
-    author="Jordi Mas",
+    url="https://github.com/rkilchmn/whisper-ctranslate2-remote-api",
+    author="Jordi Mas, Roger Kilchenmann",
     author_email="jmas@softcatala.org",
     license="MIT",
     classifiers=[
@@ -47,7 +47,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "whisper-ctranslate2=src.whisper_ctranslate2.whisper_ctranslate2:main",
+            "whisper-ctranslate2-remote-api=src.whisper_ctranslate2.whisper_ctranslate2:main",
         ]
     },
 )

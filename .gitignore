@@ -1,5 +1,7 @@
 build/*
+dist/*
 whisper_ctranslate2.egg-info/*
+whisper_ctranslate2_remote_api.egg-info/*
 src/whisper_ctranslate2/__pycache__/*
 output/*
 .vscode/*

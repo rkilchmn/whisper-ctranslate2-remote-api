@@ -3,27 +3,30 @@
 
 # Introduction
 
-Whisper command line client compatible with original [OpenAI client](https://github.com/openai/whisper) based on CTranslate2.
-
-It uses [CTranslate2](https://github.com/OpenNMT/CTranslate2/) and [Faster-whisper](https://github.com/SYSTRAN/faster-whisper) Whisper implementation that is up to 4 times faster than openai/whisper for the same accuracy while using less memory.
+Whisper command line client compatible with original [OpenAI client](https://github.com/openai/whisper) using CTranslate2 and faster-whisper based on [whisper-ctranslate2](https://github.com/Softcatala/whisper-ctranslate2) but it calls a remote CTranslate2/faster-whisper instance [remote-faster-whisper](https://github.com/rkilchmn/remote-faster-whisperhttps:/) via API. This allows to use whisper without having a local CTranslate2/faster-whisper installed, for example if no GPU is present or it is used across different containers.
 
 Goals of the project:
-* Provide an easy way to use the CTranslate2 Whisper implementation
+
+* Provide an easy way to use the CTranslate2 Whisper implementation on a remote instance
 * Ease the migration for people using OpenAI Whisper CLI
 
 # Installation
 
 To install the latest stable version, just type:
 
-    pip install -U whisper-ctranslate2
+```
+pip install -U whisper-ctranslate2-remote-api
+```
 
 Alternatively, if you are interested in the latest development (non-stable) version from this repository, just type:
 
-    pip install git+https://github.com/Softcatala/whisper-ctranslate2
+```
+pip install git+https://github.com/rkilchmn/whisper-ctranslate2-remote-api
+```
 
 # CPU and GPU support
 
-GPU and CPU support are provided by [CTranslate2](https://github.com/OpenNMT/CTranslate2/).
+GPU and CPU support are provided by [CTranslate2](https://github.com/OpenNMT/CTranslate2/) and is dependent on the configuration of the remote CTranslate2/faster-whisper instance.
 
 It has compatibility with x86-64 and AArch64/ARM64 CPU and integrates multiple backends that are optimized for these platforms: Intel MKL, oneDNN, OpenBLAS, Ruy, and Apple Accelerate.
 
@@ -32,29 +35,31 @@ GPU execution requires the NVIDIA libraries cuBLAS 11.x and cuDNN 8.x to be inst
 Install on ubuntu: sudo apt install nvidia-cudnn
 
 By default the best hardware available is selected for inference. You can use the options `--device` and `--device_index` to control manually the selection.
-    
+
 # Usage
 
 Same command line as OpenAI Whisper.
 
 To transcribe:
 
-    whisper-ctranslate2 inaguracio2011.mp3 --model medium
-    
+```
+whisper-ctranslate2-remote-api inaguracio2011.mp3 --faster_whisper_api_base_url http://localhost:9876/api/v0
+```
+
 <img alt="image" src="https://user-images.githubusercontent.com/309265/226923541-8326c575-7f43-4bba-8235-2a4a8bdfb161.png">
 
 To translate:
 
-    whisper-ctranslate2 inaguracio2011.mp3 --model medium --task translate
-
-<img alt="image" src="https://user-images.githubusercontent.com/309265/226923535-b6583536-2486-4127-b17b-c58d85cdb90f.png">
+```
+whisper-ctranslate2-remote-api inaguracio2011.mp3 --task translate
+ --faster_whisper_api_base_url http://localhost:9876/api/v0
+```
 
 Whisper translate task translates the transcription from the source language to English (the only target language supported).
 
 Additionally using:
 
-    whisper-ctranslate2 --help
-
+whisper-ctranslate2 --help
 All the supported options with their help are shown.
 
 # CTranslate2 specific options
@@ -65,7 +70,7 @@ On top of the OpenAI Whisper command line options, there are some specific optio
 
 `--compute_type` option which accepts _default,auto,int8,int8_float16,int16,float16,float32_ values indicates the type of [quantization](https://opennmt.net/CTranslate2/quantization.html) to use. On CPU _int8_ will give the best performance:
 
-    whisper-ctranslate2 myfile.mp3 --compute_type int8
+whisper-ctranslate2 myfile.mp3 --compute_type int8
 
 ## Loading the model from a directory
 
@@ -75,63 +80,55 @@ On top of the OpenAI Whisper command line options, there are some specific optio
 
 `--vad_filter` option enables the voice activity detection (VAD) to filter out parts of the audio without speech. This step uses the [Silero VAD model](https://github.com/snakers4/silero-vad):
 
-    whisper-ctranslate2 myfile.mp3 --vad_filter True
-
+whisper-ctranslate2 myfile.mp3 --vad_filter True
 The VAD filter accepts multiple additional options to determine the filter behavior:
 
-    --vad_threshold VALUE (float)
-
+--vad_threshold VALUE (float)
 Probabilities above this value are considered as speech.
 
-    --vad_min_speech_duration_ms (int)
-
+--vad_min_speech_duration_ms (int)
 Final speech chunks shorter min_speech_duration_ms are thrown out.
 
-    --vad_max_speech_duration_s VALUE (int)
-
+--vad_max_speech_duration_s VALUE (int)
 Maximum duration of speech chunks in seconds. Longer will be split at the timestamp of the last silence.
-
 
 ## Print colors
 
 `--print_colors True` options prints the transcribed text using an experimental color coding strategy based on [whisper.cpp](https://github.com/ggerganov/whisper.cpp) to highlight words with high or low confidence:
 
-    whisper-ctranslate2 myfile.mp3 --print_colors True
-
+whisper-ctranslate2 myfile.mp3 --print_colors True
 <img alt="image" src="https://user-images.githubusercontent.com/309265/228054378-48ac6af4-ce4b-44da-b4ec-70ce9f2f2a6c.png">
 
 ## Live transcribe from your microphone
 
 `--live_transcribe True` option activates the live transcription mode from your microphone:
 
-    whisper-ctranslate2 --live_transcribe True --language en
-
+whisper-ctranslate2 --live_transcribe True --language en
 https://user-images.githubusercontent.com/309265/231533784-e58c4b92-e9fb-4256-b4cd-12f1864131d9.mov
 
 Requirements for "pip install pyaudio":
 sudo apt-get install python3.10-dev libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
 
- sudo apt-get install python3-pyaudio
-  610  pip install pyaudio
-  611  sudo apt-get purge  python3-pyaudio
-  612  pip install pyaudio
-  613  sudo apt-get install python3.10-dev
-  614  pip install pyaudio
-  615  sudo apt-get install libasound-dev
-  616  pip install pyaudio
-  617  sudo apt-get purge libasound-dev
-  618  sudo apt autoremove
-  619  sudo apt-get install libasound-dev
-  620  pip install pyaudio
-  621  sudo apt-get install python-pyaudio
-  622  sudo apt-get install python3-pyaudio
-  623  pip install pyaudio
-  624  pip install portaudio
-  625  sudo apt-get install portaudio
-  626  sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
-  627  pip install pyaudio
-  628  python list_input_sounddevice.py
-
+sudo apt-get install python3-pyaudio
+610  pip install pyaudio
+611  sudo apt-get purge  python3-pyaudio
+612  pip install pyaudio
+613  sudo apt-get install python3.10-dev
+614  pip install pyaudio
+615  sudo apt-get install libasound-dev
+616  pip install pyaudio
+617  sudo apt-get purge libasound-dev
+618  sudo apt autoremove
+619  sudo apt-get install libasound-dev
+620  pip install pyaudio
+621  sudo apt-get install python-pyaudio
+622  sudo apt-get install python3-pyaudio
+623  pip install pyaudio
+624  pip install portaudio
+625  sudo apt-get install portaudio
+626  sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+627  pip install pyaudio
+628  python list_input_sounddevice.py
 
 ## Diarization (speaker identification)
 
@@ -146,14 +143,12 @@ To enable diarization you need to follow these steps:
 
 And then execute passing the HuggingFace API token as parameter to enable diarization:
 
-    whisper-ctranslate2 --hf_token YOUR_HF_TOKEN
-
+whisper-ctranslate2 --hf_token YOUR_HF_TOKEN
 and then the name of the speaker is added in the output files (e.g. JSON, VTT and STR files):
 
 _[SPEAKER_00]: There is a lot of people in this room_
 
 The option `--speaker_name SPEAKER_NAME` allows to use your own string to identify the speaker.
-
 
 # Need help?
 
